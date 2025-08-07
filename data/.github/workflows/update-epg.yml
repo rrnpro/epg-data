@@ -1,0 +1,32 @@
+name: Обновление EPG
+
+on:
+  workflow_dispatch: # Ручной запуск
+  schedule:
+    - cron: '0 */6 * * *' # Каждые 6 часов
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛠️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Установка Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 🔽 Установка зависимостей
+        run: npm install axios xml2js
+
+      - name: 📥 Загрузка и парсинг EPG
+        run: node update-epg.js
+
+      - name: 📤 Сохранение и коммит
+        run: |
+          git config user.name "EPG Bot"
+          git config user.email "epg@localhost"
+          git add data/
+          git diff --cached --exit-code || git commit -m "🔄 Обновлено расписание $(date)"
+          git push origin main
